@@ -1,0 +1,6 @@
+Revision history for Perl extension Net::Pachube.
+
+0.01  Thu Apr 30 20:53:23 2009
+	- original version; created by h2xs 1.23 with options
+		-X -A -n Net::Pachube
+
