@@ -18,7 +18,7 @@ sub new {
   my $pkg = shift;
   $pkg = ref $pkg if (ref $pkg);
   bless {
-         pachube_url => 'http://www.pachube.com/api/',
+         pachube_url => 'http://www.pachube.com/api',
          user_agent => LWP::UserAgent->new(),
          key => $ENV{PACHUBE_API_KEY},
          @_,
@@ -46,7 +46,7 @@ sub feed {
 }
 
 sub feed_url {
-  $_[0]->pachube_url.$_[0]->feed.'.xml';
+  $_[0]->pachube_url.'/'.$_[0]->feed.'.xml';
 }
 
 sub get {
