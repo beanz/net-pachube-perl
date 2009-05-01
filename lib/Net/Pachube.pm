@@ -6,6 +6,7 @@ use warnings;
 use Carp;
 use LWP::UserAgent;
 use HTTP::Request;
+use Net::Pachube::Response;
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -16,7 +17,6 @@ our $VERSION = '0.01';
 
 sub new {
   my $pkg = shift;
-  $pkg = ref $pkg if (ref $pkg);
   bless {
          pachube_url => 'http://www.pachube.com/api',
          user_agent => LWP::UserAgent->new(),
@@ -60,12 +60,7 @@ constructor.
   $ua->default_header('X-PachubeApiKey' => $key);
   my $url = $self->feed_url;
   my $request = HTTP::Request->new('GET' => $url);
-  my $resp = $ua->request($request);
-  unless ($resp->is_success) {
-    croak "Get failed response was '", $resp->status_line, "'\n",
-      $resp->content;
-  }
-  return $resp->content;
+  Net::Pachube::Response->new(http_response => $ua->request($request));
 }
 
 1;

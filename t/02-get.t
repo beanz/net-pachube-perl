@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 18;
 
 use_ok('Net::Pachube');
 
@@ -11,6 +11,8 @@ is($pachube->feed, 2, 'feed initialized');
 is($pachube->feed(1), 1, 'feed set');
 is($pachube->feed, 1, 'feed retrieved');
 is($pachube->feed_url, 'http://www.pachube.com/api/1.xml', 'feed url');
+is($pachube->pachube_url('http://localhost/api'), 'http://localhost/api',
+   'pachube url');
 eval { $pachube->get; };
 like($@, qr/^No pachube api key defined\./, 'no key defined');
 is($pachube->key('blahblahblah'), 'blahblahblah', 'key set');
@@ -32,8 +34,8 @@ my $response;
 my $ua = MockUA->new;
 is($pachube->user_agent($ua), $ua, 'set user_agent to mock object');
 $response =  HTTP::Response->new( '401', 'Unauthorized');
-eval { $pachube->get(); };
-like($@, qr/^Get failed response was '401 Unauthorized'/,
+my $resp = $pachube->get();
+is($resp->http_response->status_line, '401 Unauthorized',
      'not authorized error');
 $response =
   HTTP::Response->new('200', 'OK', undef,
@@ -56,4 +58,14 @@ $response =
   </environment>
 </eeml>
 });
-ok($pachube->get, 'get success');
+$resp = $pachube->get;
+ok($resp->is_success, 'get success');
+is($resp->title, 'Temperature', 'title');
+is($resp->description, 'Temperature', 'description');
+is($resp->id, '1', 'id');
+is($resp->feed, 'http://www.pachube.com/api/1.xml', 'feed');
+is($resp->creator, 'http://www.haque.co.uk', 'creator');
+is($resp->status, 'live', 'status');
+
+use Data::Dumper;
+print Data::Dumper->Dump([$resp->eeml], [qw/eeml/]);
