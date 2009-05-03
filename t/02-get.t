@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 28;
+use Test::More tests => 34;
 
 use_ok('Net::Pachube');
 
@@ -11,13 +11,17 @@ is($pachube->feed, 2, 'feed initialized');
 is($pachube->feed(1), 1, 'feed set');
 is($pachube->feed, 1, 'feed retrieved');
 is($pachube->feed_url, 'http://www.pachube.com/api/1.xml', 'feed url');
+is($pachube->feed_csv, 'http://www.pachube.com/api/1.csv', 'feed csv');
 is($pachube->pachube_url('http://localhost/api'), 'http://localhost/api',
    'pachube url');
 eval { $pachube->get; };
-like($@, qr/^No pachube api key defined\./, 'no key defined');
+like($@, qr/^No pachube api key defined\./, 'no key defined - get');
+eval { $pachube->put; };
+like($@, qr/^No pachube api key defined\./, 'no key defined - put');
 is($pachube->key('blahblahblah'), 'blahblahblah', 'key set');
 
 my $response;
+my $request;
 {
   package MockUA;
   sub new {
@@ -27,6 +31,7 @@ my $response;
     $_[0]->{default_header} = $_[1];
   }
   sub request {
+    $request = $_[1];
     $response;
   }
   1;
@@ -122,3 +127,11 @@ is_deeply($resp->data_tag(2),[qw/length distance extension/], 'data tag 2');
 is($resp->data(2), 12.3, 'data 2');
 is($resp->data_min(2), '0.0', 'data min 2');
 is($resp->data_max(2), undef, 'data max 2');
+
+$response =
+  HTTP::Response->new('200', 'OK', undef, q{ });
+$resp = $pachube->put(9.2, 44);
+ok($resp->is_success, 'put successful');
+is($request->uri, 'http://localhost/api/1.csv', 'request->uri');
+is($request->method, 'PUT', 'request->method');
+is($request->content, '9.2,44', 'request->content');

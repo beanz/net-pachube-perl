@@ -130,12 +130,22 @@ sub user_agent {
 
 =head2 C<feed_url( )>
 
-This method returns the URL of for the XML for the feed.
+This method returns the URL for the XML for the feed.
 
 =cut
 
 sub feed_url {
   $_[0]->pachube_url.'/'.$_[0]->feed.'.xml';
+}
+
+=head2 C<feed_csv( )>
+
+This method returns the URL for the CSV for the feed.
+
+=cut
+
+sub feed_csv {
+  $_[0]->pachube_url.'/'.$_[0]->feed.'.csv';
 }
 
 =head2 C<get( )>
@@ -156,6 +166,28 @@ constructor.
   $ua->default_header('X-PachubeApiKey' => $key);
   my $url = $self->feed_url;
   my $request = HTTP::Request->new('GET' => $url);
+  Net::Pachube::Response->new(http_response => $ua->request($request));
+}
+
+=head2 C<put( @data_values )>
+
+This method returns a L<Net::Pachube::Response> object representing
+the result of attempting to C<PUT> data to update the feed.
+
+=cut
+
+sub put {
+  my ($self) = shift;
+  my $key = $self->key or
+    croak(q{No pachube api key defined.
+Set PACHUBE_API_KEY environment variable or pass 'key' parameter to the
+constructor.
+});
+  my $ua = $self->user_agent;
+  $ua->default_header('X-PachubeApiKey' => $key);
+  my $url = $self->feed_csv;
+  my $request = HTTP::Request->new('PUT' => $url);
+  $request->content(join ',', @_);
   Net::Pachube::Response->new(http_response => $ua->request($request));
 }
 
