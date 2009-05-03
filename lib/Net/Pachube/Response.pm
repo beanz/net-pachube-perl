@@ -33,7 +33,9 @@ sub is_success {
 }
 
 sub eeml {
-  $_[0]->{eeml} or $_[0]->{eeml} = XMLin($_[0]->content);
+  $_[0]->{eeml} or $_[0]->{eeml} = XMLin($_[0]->content,
+                                         KeyAttr => [qw/id/],
+                                         ForceArray => [qw/data/]);
 }
 
 sub title {
@@ -58,6 +60,27 @@ sub feed {
 
 sub creator {
   $_[0]->eeml->{environment}->{creator};
+}
+
+sub location {
+  defined $_[1] ? $_[0]->eeml->{environment}->{location}->{$_[1]} :
+    $_[0]->eeml->{environment}->{location};
+}
+
+sub data {
+  $_[0]->eeml->{environment}->{data}->{$_[1]||0}->{value}->{content};
+}
+
+sub data_min {
+  $_[0]->eeml->{environment}->{data}->{$_[1]||0}->{value}->{minValue};
+}
+
+sub data_max {
+  $_[0]->eeml->{environment}->{data}->{$_[1]||0}->{value}->{maxValue};
+}
+
+sub data_tag {
+  $_[0]->eeml->{environment}->{data}->{$_[1]||0}->{tag};
 }
 
 1;

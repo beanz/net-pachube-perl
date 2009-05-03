@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 18;
+use Test::More tests => 24;
 
 use_ok('Net::Pachube');
 
@@ -66,6 +66,59 @@ is($resp->id, '1', 'id');
 is($resp->feed, 'http://www.pachube.com/api/1.xml', 'feed');
 is($resp->creator, 'http://www.haque.co.uk', 'creator');
 is($resp->status, 'live', 'status');
+is($resp->data, 22.3, 'data value');
+is(int $resp->data_min, 0, 'data min');
+is(int $resp->data_max, 34, 'data max');
+is($resp->data_tag, 'temperature', 'data tag');
+is_deeply([sort keys %{$resp->location}],
+          [qw/disposition domain exposure lat lon name/],
+          'location structure');
+is($resp->location('domain'), 'physical', 'location element');
 
-use Data::Dumper;
-print Data::Dumper->Dump([$resp->eeml], [qw/eeml/]);
+$response =
+  HTTP::Response->new('200', 'OK', undef,
+                      q{<?xml version="1.0" encoding="UTF-8"?>
+<eeml xmlns="http://www.eeml.org/xsd/005"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.eeml.org/xsd/005 http://www.eeml.org/xsd/005/005.xsd" version="5">
+    <environment updated="2007-05-04T18:13:51.0Z" creator="http://www.haque.co.uk" id="1">
+        <title>A Room Somewhere</title>
+        <feed>http://www.pachube.com/feeds/1.xml</feed>
+        <status>frozen</status>
+        <description>This is a room somewhere</description>
+        <icon>http://www.roomsomewhere/icon.png</icon>
+        <website>http://www.roomsomewhere/</website>
+        <email>myemail@roomsomewhere</email>
+        <location exposure="indoor" domain="physical" disposition="fixed">
+            <name>My Room</name>
+            <lat>32.4</lat>
+            <lon>22.7</lon>
+            <ele>0.2</ele>
+        </location>
+        <data id="0">
+            <tag>temperature</tag>
+            <value minValue="23.0" maxValue="48.0">36.2</value>
+            <unit symbol="C" type="derivedSI">Celsius</unit>
+        </data>
+        <data id="1">
+            <tag>blush</tag>
+            <tag>redness</tag>
+            <tag>embarrassment</tag>
+            <value minValue="0.0" maxValue="100.0">84.0</value>
+            <unit type="contextDependentUnits">blushesPerHour</unit>
+        </data>
+        <data id="2">
+            <tag>length</tag>
+            <tag>distance</tag>
+            <tag>extension</tag>
+            <value minValue="0.0">12.3</value>
+            <unit symbol="m" type="basicSI">meter</unit>
+        </data>
+    </environment>
+</eeml>
+});
+$resp = $pachube->get;
+is_deeply($resp->data_tag(2),[qw/length distance extension/], 'data tag 2');
+is($resp->data(2), 12.3, 'data 2');
+is($resp->data_min(2), '0.0', 'data min 2');
+is($resp->data_max(2), undef, 'data max 2');
