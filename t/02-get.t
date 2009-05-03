@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 28;
 
 use_ok('Net::Pachube');
 
