@@ -72,7 +72,7 @@ sub http_response {
 =head2 C<content( )>
 
 This method is shorthand for calling the L<content> method on the
-L<http_request> attribute.  It returns the body of the HTTP response -
+L<http_response> attribute.  It returns the body of the HTTP response -
 typically some XML text.
 
 =cut
@@ -84,13 +84,40 @@ sub content {
 =head2 C<is_success( )>
 
 This method is shorthand for calling the L<is_success> method on the
-L<http_request> attribute.  It returns true if the request was
+L<http_response> attribute.  It returns true if the request was
 successful.
 
 =cut
 
 sub is_success {
   $_[0]->http_response->is_success
+}
+
+=head2 C<feed_location( )>
+
+This method returns the 'Location' header from the L<http_response>
+attribute.  This is useful when a new feed has been created with a
+C<POST> request.
+
+=cut
+
+sub feed_location {
+  $_[0]->http_response->header('Location');
+}
+
+=head2 C<feed_id( )>
+
+This method returns the feed id from the URL in the 'Location' header
+from the L<http_response> attribute.  This is useful when a new feed
+has been created with a C<POST> request.  It returns undef if it can't
+determine the feed id.
+
+=cut
+
+sub feed_id {
+  my $url = $_[0]->http_response->header('Location') or return;
+  return unless ($url =~ m!/(\d+)\.xml$!);
+  return $1;
 }
 
 =head2 C<eeml( )>

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 34;
+use Test::More tests => 55;
 
 use_ok('Net::Pachube');
 
@@ -10,14 +10,17 @@ ok($pachube, 'constructor');
 is($pachube->feed, 2, 'feed initialized');
 is($pachube->feed(1), 1, 'feed set');
 is($pachube->feed, 1, 'feed retrieved');
-is($pachube->feed_url, 'http://www.pachube.com/api/1.xml', 'feed url');
-is($pachube->feed_csv, 'http://www.pachube.com/api/1.csv', 'feed csv');
+is($pachube->xml_url, 'http://www.pachube.com/api/1.xml', 'feed xml url');
+is($pachube->csv_url, 'http://www.pachube.com/api/1.csv', 'feed csv url');
+is($pachube->api_url, 'http://www.pachube.com/api.xml', 'api urlv');
 is($pachube->pachube_url('http://localhost/api'), 'http://localhost/api',
    'pachube url');
 eval { $pachube->get; };
 like($@, qr/^No pachube api key defined\./, 'no key defined - get');
 eval { $pachube->put; };
 like($@, qr/^No pachube api key defined\./, 'no key defined - put');
+eval { $pachube->post; };
+like($@, qr/^No pachube api key defined\./, 'no key defined - post');
 is($pachube->key('blahblahblah'), 'blahblahblah', 'key set');
 
 my $response;
@@ -135,3 +138,95 @@ ok($resp->is_success, 'put successful');
 is($request->uri, 'http://localhost/api/1.csv', 'request->uri');
 is($request->method, 'PUT', 'request->method');
 is($request->content, '9.2,44', 'request->content');
+
+$response =
+  HTTP::Response->new('200', 'OK', undef, q{ });
+$resp = $pachube->put(9.2, 44);
+ok($resp->is_success, 'put successful');
+is($request->uri, 'http://localhost/api/1.csv', 'request->uri');
+is($request->method, 'PUT', 'request->method');
+is($request->content, '9.2,44', 'request->content');
+
+$response =
+  HTTP::Response->new('201', 'OK',
+                      [ Location => "http://www.pachube.com/api/2.xml" ],
+                      q{ });
+$resp = $pachube->post(title => "Outside Temperature");
+is($request->content,
+   q{<?xml version="1.0" encoding="UTF-8"?>
+<eeml xmlns="http://www.eeml.org/xsd/005"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.eeml.org/xsd/005 http://www.eeml.org/xsd/005/005.xsd" version="5">
+<environment>
+  <title>Outside Temperature</title>
+</environment>
+</eeml>
+}, 'post request->content - 1');
+ok($resp->is_success, 'post successful');
+is($resp->feed_location, 'http://www.pachube.com/api/2.xml',
+   'post result - new feed location');
+is($resp->feed_id, '2', 'post result - new feed id');
+
+$response =
+  HTTP::Response->new('500', 'OK', undef, q{ });
+$resp = $pachube->post(title => "Outside Temperature");
+ok(!$resp->is_success, 'post unsuccessful');
+is($resp->feed_location, undef, 'post result - no new feed location');
+is($resp->feed_id, undef, 'post result - no new feed id');
+
+$response =
+  HTTP::Response->new('422', 'OK',
+                      [ Location => "http://www.pachube.com/api.xml" ],
+                      q{ });
+$resp = $pachube->post(title => "Outside Temperature");
+ok(!$resp->is_success, 'post unsuccessful');
+is($resp->feed_location, 'http://www.pachube.com/api.xml',
+   'post result - not a feed location');
+is($resp->feed_id, undef, 'post result - no feed id');
+
+eval { $pachube->post; };
+like($@, qr/^New feed should have a 'title' attribute\./,
+     'no title - post');
+
+$response =
+  HTTP::Response->new('201', 'OK',
+                      [ Location => "http://www.pachube.com/api/22.xml" ],
+                      q{ });
+$resp = $pachube->post(title => 'Outside Humidity',
+                       description => 'Humidity outside',
+                       website => 'http://www.example.com/',
+                       icon => 'http://www.example.com/icon.png',
+                       email => 'no-one@example.com',
+                       exposure => 'outdoor',
+                       disposition => 'fixed',
+                       domain => 'mobile',
+                       location_name => 'Middle of nowhere',
+                       lat => 1,
+                       lon => 2,
+                       ele => 100,
+                      );
+is($request->content,
+   q{<?xml version="1.0" encoding="UTF-8"?>
+<eeml xmlns="http://www.eeml.org/xsd/005"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.eeml.org/xsd/005 http://www.eeml.org/xsd/005/005.xsd" version="5">
+<environment>
+  <description>Humidity outside</description>
+  <email>no-one@example.com</email>
+  <icon>http://www.example.com/icon.png</icon>
+  <location disposition="fixed" domain="mobile" exposure="outdoor">
+    <name>Middle of nowhere</name>
+    <ele>100</ele>
+    <lat>1</lat>
+    <lon>2</lon>
+  </location>
+  <title>Outside Humidity</title>
+  <website>http://www.example.com/</website>
+</environment>
+</eeml>
+}, 'post request->content - 2');
+ok($resp->is_success, 'post successful');
+is($resp->feed_location, 'http://www.pachube.com/api/22.xml',
+   'post result - new feed location');
+is($resp->feed_id, '22', 'post result - new feed id');
+

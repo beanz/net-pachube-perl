@@ -28,6 +28,7 @@ use warnings;
 use Carp;
 use LWP::UserAgent;
 use HTTP::Request;
+use XML::Simple;
 use Net::Pachube::Response;
 
 require Exporter;
@@ -128,24 +129,34 @@ sub user_agent {
   $_[0]->{'user_agent'};
 }
 
-=head2 C<feed_url( )>
+=head2 C<xml_url( )>
 
 This method returns the URL for the XML for the feed.
 
 =cut
 
-sub feed_url {
+sub xml_url {
   $_[0]->pachube_url.'/'.$_[0]->feed.'.xml';
 }
 
-=head2 C<feed_csv( )>
+=head2 C<csv_url( )>
 
 This method returns the URL for the CSV for the feed.
 
 =cut
 
-sub feed_csv {
+sub csv_url {
   $_[0]->pachube_url.'/'.$_[0]->feed.'.csv';
+}
+
+=head2 C<api_url( )>
+
+This method returns the URL for the XML for the feed.
+
+=cut
+
+sub api_url {
+  $_[0]->pachube_url.'.xml';
 }
 
 =head2 C<get( )>
@@ -164,7 +175,7 @@ constructor.
 });
   my $ua = $self->user_agent;
   $ua->default_header('X-PachubeApiKey' => $key);
-  my $url = $self->feed_url;
+  my $url = $self->xml_url;
   my $request = HTTP::Request->new('GET' => $url);
   Net::Pachube::Response->new(http_response => $ua->request($request));
 }
@@ -185,9 +196,114 @@ constructor.
 });
   my $ua = $self->user_agent;
   $ua->default_header('X-PachubeApiKey' => $key);
-  my $url = $self->feed_csv;
+  my $url = $self->csv_url;
   my $request = HTTP::Request->new('PUT' => $url);
   $request->content(join ',', @_);
+  Net::Pachube::Response->new(http_response => $ua->request($request));
+}
+
+=head2 C<post( %param )>
+
+This method returns a L<Net::Pachube::Response> object representing
+the result of attempting a C<POST> to create a new feed.  If
+successful, the new feed id will be available by calling the
+L<feed_id> method on the response object.  The following keys are
+significant in the hash passed to this method:
+
+=over
+
+=item title
+
+  The title of the new feed.  This is the only mandatory attribute.
+
+=item description
+
+  A description of the new feed.
+
+=item icon
+
+  The URL of an icon to associate with the new feed.
+
+=item website
+
+  The URL of a website to associate with the new feed.
+
+=item email
+
+  An email to associate with the new feed.  B<This email address will
+  be publicly available on the L<www.pachube.com> site, so please
+  don't use any email address you wish to keep private.>
+
+=item exposure
+
+  The 'exposure' of the new feed - either 'outdoor' or 'indoor'.
+
+=item disposition
+
+  The 'disposition' of the new feed - either 'fixed' or 'mobile'.
+
+=item domain
+
+  The 'domain' of the new feed - either 'physical' or 'virtual'.
+
+=item location_name
+
+  The name of the location of the new feed.
+
+=item lat
+
+  The latitude of the new feed.
+
+=item lon
+
+  The longitude of the new feed.
+
+=item ele
+
+  The elevation of the new feed.
+
+=back
+
+=cut
+
+sub post {
+  my $self = shift;
+  my $key = $self->key or
+    croak(q{No pachube api key defined.
+Set PACHUBE_API_KEY environment variable or pass 'key' parameter to the
+constructor.
+});
+  my %p = @_;
+  exists $p{title} or croak "New feed should have a 'title' attribute.\n";
+  my $xml = q{<?xml version="1.0" encoding="UTF-8"?>
+<eeml xmlns="http://www.eeml.org/xsd/005"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.eeml.org/xsd/005 http://www.eeml.org/xsd/005/005.xsd" version="5">
+};
+  my %args =
+    (
+     title => [ $p{title} ],
+    );
+  $args{description} = [ $p{description} ] if (exists $p{description});
+  $args{icon} = [ $p{icon} ] if (exists $p{icon});
+  $args{website} = [ $p{website} ] if (exists $p{website});
+  $args{email} = [ $p{email} ] if (exists $p{email});
+  my %location = ();
+  $location{exposure} = $p{exposure} if (exists $p{exposure});
+  $location{domain} = $p{domain} if (exists $p{domain});
+  $location{disposition} = $p{disposition} if (exists $p{disposition});
+  $location{name} = [$p{location_name}] if (exists $p{location_name});
+  $location{lat} = [ $p{lat} ] if (exists $p{lat});
+  $location{lon} = [ $p{lon} ] if (exists $p{lon});
+  $location{ele} = [ $p{ele} ] if (exists $p{ele});
+  $args{location} = \%location if (scalar keys %location);
+  $xml .= XMLout(\%args, RootName => "environment");
+  $xml .= "</eeml>\n";
+  my $ua = $self->user_agent;
+  $ua->default_header('X-PachubeApiKey' => $key);
+  my $url = $self->api_url;
+  my $request = HTTP::Request->new('POST' => $url);
+  $request->content($xml);
   Net::Pachube::Response->new(http_response => $ua->request($request));
 }
 
