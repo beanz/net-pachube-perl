@@ -1,6 +1,5 @@
 use 5.006;
 use ExtUtils::MakeMaker;
-use FileHandle;
 
 WriteMakefile(
     NAME              => 'Net::Pachube',
@@ -8,6 +7,7 @@ WriteMakefile(
     PREREQ_PM         =>
               {
                'LWP::UserAgent' => 0,
+               'XML::Simple' => 0,
               }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Net/Pachube.pm', # retrieve abstract from module
