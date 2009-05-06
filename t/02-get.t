@@ -12,7 +12,7 @@ is($pachube->feed(1), 1, 'feed set');
 is($pachube->feed, 1, 'feed retrieved');
 is($pachube->xml_url, 'http://www.pachube.com/api/1.xml', 'feed xml url');
 is($pachube->csv_url, 'http://www.pachube.com/api/1.csv', 'feed csv url');
-is($pachube->api_url, 'http://www.pachube.com/api.xml', 'api urlv');
+is($pachube->api_url, 'http://www.pachube.com/api.xml', 'api url');
 is($pachube->pachube_url('http://localhost/api'), 'http://localhost/api',
    'pachube url');
 eval { $pachube->get; };
