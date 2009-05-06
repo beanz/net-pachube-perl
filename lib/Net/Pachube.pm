@@ -163,16 +163,7 @@ the result of attempting to obtain the data for the feed.
 
 sub get {
   my ($self) = @_;
-  my $key = $self->key or
-    croak(q{No pachube api key defined.
-Set PACHUBE_API_KEY environment variable or pass 'key' parameter to the
-constructor.
-});
-  my $ua = $self->user_agent;
-  $ua->default_header('X-PachubeApiKey' => $key);
-  my $url = $self->xml_url;
-  my $request = HTTP::Request->new('GET' => $url);
-  Net::Pachube::Response->new(http_response => $ua->request($request));
+  $self->_request(method => 'GET', url => $self->xml_url);
 }
 
 =head2 C<put( @data_values )>
@@ -184,17 +175,8 @@ the result of attempting to C<PUT> data to update the feed.
 
 sub put {
   my ($self) = shift;
-  my $key = $self->key or
-    croak(q{No pachube api key defined.
-Set PACHUBE_API_KEY environment variable or pass 'key' parameter to the
-constructor.
-});
-  my $ua = $self->user_agent;
-  $ua->default_header('X-PachubeApiKey' => $key);
-  my $url = $self->csv_url;
-  my $request = HTTP::Request->new('PUT' => $url);
-  $request->content(join ',', @_);
-  Net::Pachube::Response->new(http_response => $ua->request($request));
+  $self->_request(method => 'PUT', url => $self->csv_url,
+                  content => (join ',', @_));
 }
 
 =head2 C<post( %param )>
@@ -263,11 +245,6 @@ significant in the hash passed to this method:
 
 sub post {
   my $self = shift;
-  my $key = $self->key or
-    croak(q{No pachube api key defined.
-Set PACHUBE_API_KEY environment variable or pass 'key' parameter to the
-constructor.
-});
   my %p = @_;
   exists $p{title} or croak "New feed should have a 'title' attribute.\n";
   my $xml = q{<?xml version="1.0" encoding="UTF-8"?>
@@ -293,11 +270,21 @@ constructor.
   $args{location} = \%location if (scalar keys %location);
   $xml .= XMLout(\%args, RootName => "environment");
   $xml .= "</eeml>\n";
+  $self->_request(method => 'POST', url => $self->api_url, content => $xml);
+}
+
+sub _request {
+  my $self = shift;
+  my $key = $self->key or
+    croak(q{No pachube api key defined.
+Set PACHUBE_API_KEY environment variable or pass 'key' parameter to the
+constructor.
+});
+  my %p = @_;
   my $ua = $self->user_agent;
   $ua->default_header('X-PachubeApiKey' => $key);
-  my $url = $self->api_url;
-  my $request = HTTP::Request->new('POST' => $url);
-  $request->content($xml);
+  my $request = HTTP::Request->new($p{method} => $p{url});
+  $request->content($p{content}) if (exists $p{content});
   Net::Pachube::Response->new(http_response => $ua->request($request));
 }
 

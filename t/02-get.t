@@ -19,7 +19,7 @@ eval { $pachube->get; };
 like($@, qr/^No pachube api key defined\./, 'no key defined - get');
 eval { $pachube->put; };
 like($@, qr/^No pachube api key defined\./, 'no key defined - put');
-eval { $pachube->post; };
+eval { $pachube->post(title => 'foo'); };
 like($@, qr/^No pachube api key defined\./, 'no key defined - post');
 is($pachube->key('blahblahblah'), 'blahblahblah', 'key set');
 
