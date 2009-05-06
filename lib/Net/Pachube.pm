@@ -154,6 +154,16 @@ sub api_url {
   $_[0]->pachube_url.'.xml';
 }
 
+=head2 C<delete_url( )>
+
+This method returns the URL for the delete request for the feed.
+
+=cut
+
+sub delete_url {
+  $_[0]->pachube_url.'/'.$_[0]->feed;
+}
+
 =head2 C<get( )>
 
 This method returns a L<Net::Pachube::Response> object representing
@@ -271,6 +281,18 @@ sub post {
   $xml .= XMLout(\%args, RootName => "environment");
   $xml .= "</eeml>\n";
   $self->_request(method => 'POST', url => $self->api_url, content => $xml);
+}
+
+=head2 C<delete( )>
+
+This method returns a L<Net::Pachube::Response> object representing
+the result of attempting a C<DELETE> to remove a feed.
+
+=cut
+
+sub delete {
+  my $self = shift;
+  $self->_request(method => 'DELETE', url => $self->delete_url);
 }
 
 sub _request {

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 55;
+use Test::More tests => 59;
 
 use_ok('Net::Pachube');
 
@@ -230,3 +230,10 @@ is($resp->feed_location, 'http://www.pachube.com/api/22.xml',
    'post result - new feed location');
 is($resp->feed_id, '22', 'post result - new feed id');
 
+$response =
+  HTTP::Response->new('200', 'OK', undef, q{ });
+$resp = $pachube->delete();
+ok($resp->is_success, 'delete successful');
+is($request->uri, 'http://localhost/api/1', 'request->uri');
+is($request->method, 'DELETE', 'request->method');
+is($request->content, '', 'request->content');
