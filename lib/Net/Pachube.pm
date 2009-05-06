@@ -279,18 +279,17 @@ constructor.
     (
      title => [ $p{title} ],
     );
-  $args{description} = [ $p{description} ] if (exists $p{description});
-  $args{icon} = [ $p{icon} ] if (exists $p{icon});
-  $args{website} = [ $p{website} ] if (exists $p{website});
-  $args{email} = [ $p{email} ] if (exists $p{email});
+  foreach (qw/description icon website email/) {
+    $args{$_} = [$p{$_}] if (exists $p{$_});
+  }
   my %location = ();
-  $location{exposure} = $p{exposure} if (exists $p{exposure});
-  $location{domain} = $p{domain} if (exists $p{domain});
-  $location{disposition} = $p{disposition} if (exists $p{disposition});
+  foreach (qw/exposure domain disposition/) {
+    $location{$_} = $p{$_} if (exists $p{$_});
+  }
+  foreach (qw/lat lon ele/) {
+    $location{$_} = [$p{$_}] if (exists $p{$_});
+  }
   $location{name} = [$p{location_name}] if (exists $p{location_name});
-  $location{lat} = [ $p{lat} ] if (exists $p{lat});
-  $location{lon} = [ $p{lon} ] if (exists $p{lon});
-  $location{ele} = [ $p{ele} ] if (exists $p{ele});
   $args{location} = \%location if (scalar keys %location);
   $xml .= XMLout(\%args, RootName => "environment");
   $xml .= "</eeml>\n";
