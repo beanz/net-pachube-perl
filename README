@@ -21,6 +21,7 @@ This module requires these other modules and libraries:
 
   LWP
   XML::Simple
+  Class::Accessor::Fast
 
 COPYRIGHT AND LICENCE
 
