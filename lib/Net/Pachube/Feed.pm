@@ -22,8 +22,8 @@ Net::Pachube::Feed - Perl extension for manipulating pachube.com feeds
   # update several streams at once
   $feed->update(data => [0,1,2,3,4]);
 
-  # update one specific stream
-  $feed->update(data => 99, stream_index => 1);
+  # update one stream
+  $feed->update(data => 99);
 
 =head1 DESCRIPTION
 
@@ -241,7 +241,6 @@ sub data_tags {
 }
 
 =head2 C<update( data => \@data_values )>
-=head2 C<update( data => $value, stream => $index )>
 
 This method performs a C<PUT> request in order to update a feed.
 It returns true on success or undef otherwise.
@@ -252,24 +251,9 @@ sub update {
   my %p = @_;
   my $pachube = $self->pachube;
   my $url = $pachube->url.'/'.$self->id;
-  if (ref $p{data}) {
-    $pachube->_request(method => 'PUT', url => $url.'.csv',
-                       content => (join ',', @{$p{data}}));
-  } else {
-    my $index = $p{stream} || 0;
-    my $data = $p{data};
-    $pachube->_request(method => 'PUT', url => $url.'.xml',
-                       content => <<"EEML");
-<?xml version="1.0" encoding="UTF-8"?>
-<eeml xmlns="http://www.eeml.org/xsd/005">
-  <environment>
-    <data id="$index">
-      <value>$data</value>
-    </data>
-  </environment>
-</eeml>
-EEML
-  }
+  my $data = ref $p{data} ? $p{data} : [$p{data}];
+  $pachube->_request(method => 'PUT', url => $url.'.csv',
+                     content => (join ',', @$data));
 }
 
 =head2 C<delete( )>

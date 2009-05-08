@@ -16,7 +16,7 @@ Net::Pachube - Perl extension for accessing pachube.com
       print "  Tag: ", $tag, "\n";
     }
   }
-  $feed->update(data => 99, stream_index => 1);
+  $feed->update(data => 99, stream => 1);
   $feed->update(data => [0,1,2,3,4]);
 
 =head1 DESCRIPTION

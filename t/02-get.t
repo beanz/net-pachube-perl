@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 62;
+use Test::More tests => 58;
 
 use_ok('Net::Pachube');
 
@@ -141,36 +141,11 @@ is($request->method, 'PUT', 'request->method');
 is($request->content, '9.2,44', 'request->content');
 
 $ua->response(HTTP::Response->new('200', 'OK', undef, q{ }));
-ok($feed->update(data => 44, stream => 2), 'put successful 2');
+ok($feed->update(data => 44), 'put successful 2');
 $request = $ua->req;
-is($request->uri, 'http://localhost/api/1.xml', 'request->uri 2');
+is($request->uri, 'http://localhost/api/1.csv', 'request->uri 2');
 is($request->method, 'PUT', 'request->method 2');
-is($request->content, <<'EEML', 'request->content 2');
-<?xml version="1.0" encoding="UTF-8"?>
-<eeml xmlns="http://www.eeml.org/xsd/005">
-  <environment>
-    <data id="2">
-      <value>44</value>
-    </data>
-  </environment>
-</eeml>
-EEML
-
-$ua->response(HTTP::Response->new('200', 'OK', undef, q{ }));
-ok($feed->update(data => 9.8), 'put successful 3');
-$request = $ua->req;
-is($request->uri, 'http://localhost/api/1.xml', 'request->uri 3');
-is($request->method, 'PUT', 'request->method 3');
-is($request->content, <<'EEML', 'request->content 3');
-<?xml version="1.0" encoding="UTF-8"?>
-<eeml xmlns="http://www.eeml.org/xsd/005">
-  <environment>
-    <data id="0">
-      <value>9.8</value>
-    </data>
-  </environment>
-</eeml>
-EEML
+is($request->content, '44', 'request->content 2');
 
 $ua->response(
   HTTP::Response->new('201', 'OK',
