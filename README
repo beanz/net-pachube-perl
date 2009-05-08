@@ -3,9 +3,8 @@ Net-Pachube version 0.01
 
 This module provides a simple API for manipulating feeds on the
 Pachube service (http://www.pachube.com/).  Currently it supports
-updating a feed with a PUT request, fetching latest information
-for a feed with a GET request and creating a new feed with a POST
-request.
+updating a feed, fetching the current state of a feed, creating
+a new feed and deleting an existing feed.
 
 INSTALLATION
 
