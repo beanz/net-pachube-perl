@@ -2,16 +2,22 @@ package Net::Pachube;
 
 =head1 NAME
 
-Net::Pachube - Perl extension for manipulating pachube.com feeds
+Net::Pachube - Perl extension for accessing pachube.com
 
 =head1 SYNOPSIS
 
   use Net::Pachube;
-  my $feed_id = 1;
-  my $pachube = Net::Pachube->new(feed => $feed_id);
-  my $eeml = $pachube->get();
-  $pachube->put(data => 99);
-  $pachube->put(data => [0,1,2,3,4]);
+  my $pachube = Net::Pachube->new();
+  my $feed = $pachube->feed($feed_id);
+  print $feed->title, " ", $feed->status, "\n";
+  foreach my $i (0..$feed->number_of_streams-1) {
+    print "Stream ", $i, " value: ", $feed->data_value($i), "\n";
+    foreach my $tag ($feed->data_tags($i)) {
+      print "  Tag: ", $tag, "\n";
+    }
+  }
+  $feed->update(data => 99, stream_index => 1);
+  $feed->update(data => [0,1,2,3,4]);
 
 =head1 DESCRIPTION
 
@@ -25,15 +31,19 @@ feeds.
 use 5.006;
 use strict;
 use warnings;
+use base qw/Class::Accessor::Fast/;
 use Carp;
 use LWP::UserAgent;
 use HTTP::Request;
 use XML::Simple;
-use Net::Pachube::Response;
+use Net::Pachube::Feed;
 
 our $VERSION = '0.01';
 
-=head2 C<new(%params)>
+__PACKAGE__->mk_accessors(qw/key url user_agent/);
+__PACKAGE__->mk_ro_accessors(qw/http_response/);
+
+=head2 C<new({ ... })>
 
 The constructor creates a new L<Net:Pachube> object.  The constructor
 takes a parameter hash as arguments.  Valid parameters in the hash
@@ -41,18 +51,13 @@ are:
 
 =over
 
-=item feed
-
-  The feed id to use.  This option is necessary for most methods to
-  work.
-
 =item key
 
   The Pachube API key to use.  This parameter is optional.  If it is
   not provided then the value of the environment variable
   C<PACHUBE_API_KEY> is used.
 
-=item pachube_url
+=item url
 
   The base URL to use for all HTTP requests.  The default is
   C<http://www.pachube.com/api>.
@@ -68,24 +73,10 @@ are:
 
 sub new {
   my $pkg = shift;
-  bless {
-         pachube_url => 'http://www.pachube.com/api',
-         user_agent => LWP::UserAgent->new(),
-         key => $ENV{PACHUBE_API_KEY},
-         @_,
-        }, $pkg;
-}
-
-=head2 C<feed( [$new_feed] )>
-
-This method is an accessor/setter for the C<feed> attribute which is
-the feed id to use.
-
-=cut
-
-sub feed {
-  $_[0]->{'feed'} = $_[1] if (@_ > 1);
-  $_[0]->{'feed'};
+  $pkg->SUPER::new({ url => 'http://www.pachube.com/api',
+                   user_agent => LWP::UserAgent->new(),
+                   key => $ENV{PACHUBE_API_KEY},
+                   @_ });
 }
 
 =head2 C<key( [$new_key] )>
@@ -93,109 +84,35 @@ sub feed {
 This method is an accessor/setter for the C<key> attribute which is
 the Pachube API key to use.
 
-=cut
+=head2 C<url( [$new_url] )>
 
-sub key {
-  $_[0]->{'key'} = $_[1] if (@_ > 1);
-  $_[0]->{'key'};
-}
-
-=head2 C<pachube_url( [$new_url] )>
-
-This method is an accessor/setter for the C<pachube_url> attribute
+This method is an accessor/setter for the C<url> attribute
 which is the base URL to to use for all HTTP requests.
-
-=cut
-
-sub pachube_url {
-  $_[0]->{'pachube_url'} = $_[1] if (@_ > 1);
-  $_[0]->{'pachube_url'};
-}
 
 =head2 C<user_agent( [$new_user_agent] )>
 
 This method is an accessor/setter for the C<user_agent> attribute
 which is the L<LWP> user agent object to use for all HTTP requests.
 
-=cut
+=head2 C<feed( $feed_id )>
 
-sub user_agent {
-  $_[0]->{'user_agent'} = $_[1] if (@_ > 1);
-  $_[0]->{'user_agent'};
-}
-
-=head2 C<xml_url( )>
-
-This method returns the URL for the XML for the feed.
+This method constructs a new L<Net::Pachube::Feed> object and retrieves
+the feed data from the server.
 
 =cut
 
-sub xml_url {
-  $_[0]->pachube_url.'/'.$_[0]->feed.'.xml';
+sub feed {
+  my ($self, $feed_id, $fetch) = @_;
+  $fetch = 1 unless (defined $fetch);
+  Net::Pachube::Feed->new(id => $feed_id, pachube => $self, fetch => $fetch);
 }
 
-=head2 C<csv_url( )>
+=head2 C<create( %param )>
 
-This method returns the URL for the CSV for the feed.
-
-=cut
-
-sub csv_url {
-  $_[0]->pachube_url.'/'.$_[0]->feed.'.csv';
-}
-
-=head2 C<api_url( )>
-
-This method returns the URL for the XML for the feed.
-
-=cut
-
-sub api_url {
-  $_[0]->pachube_url.'.xml';
-}
-
-=head2 C<delete_url( )>
-
-This method returns the URL for the delete request for the feed.
-
-=cut
-
-sub delete_url {
-  $_[0]->pachube_url.'/'.$_[0]->feed;
-}
-
-=head2 C<get( )>
-
-This method returns a L<Net::Pachube::Response> object representing
-the result of attempting to obtain the data for the feed.
-
-=cut
-
-sub get {
-  my ($self) = @_;
-  $self->_request(method => 'GET', url => $self->xml_url);
-}
-
-=head2 C<put( @data_values )>
-
-This method returns a L<Net::Pachube::Response> object representing
-the result of attempting to C<PUT> data to update the feed.
-
-=cut
-
-sub put {
-  my ($self) = shift;
-  $self->_request(method => 'PUT', url => $self->csv_url,
-                  content => (join ',', @_));
-}
-
-=head2 C<post( %param )>
-
-This method returns a L<Net::Pachube::Response> object representing
-the result of attempting a C<POST> to create a new feed.  If
-successful, the new feed id will be available by calling the
-L<feed_id> method on the response object.  The following keys are
-significant in the hash passed to this method:
+This method makes a C<POST> request to create a new feed.  If
+successful, it returns a L<Net::Pachube::Feed> object for the new feed
+otherwise it returns undef.  The following keys are significant in the
+hash passed to this method:
 
 =over
 
@@ -253,7 +170,7 @@ significant in the hash passed to this method:
 
 =cut
 
-sub post {
+sub create {
   my $self = shift;
   my %p = @_;
   exists $p{title} or croak "New feed should have a 'title' attribute.\n";
@@ -280,19 +197,11 @@ sub post {
   $args{location} = \%location if (scalar keys %location);
   $xml .= XMLout(\%args, RootName => "environment");
   $xml .= "</eeml>\n";
-  $self->_request(method => 'POST', url => $self->api_url, content => $xml);
-}
-
-=head2 C<delete( )>
-
-This method returns a L<Net::Pachube::Response> object representing
-the result of attempting a C<DELETE> to remove a feed.
-
-=cut
-
-sub delete {
-  my $self = shift;
-  $self->_request(method => 'DELETE', url => $self->delete_url);
+  my $resp = $self->_request(method => 'POST', url => $self->url.'.xml',
+                             content => $xml) or return;
+  my $url = $resp->header('Location') or return;
+  return unless ($url =~ m!/(\d+)\.xml$!);
+  $self->feed($1);
 }
 
 sub _request {
@@ -307,7 +216,8 @@ constructor.
   $ua->default_header('X-PachubeApiKey' => $key);
   my $request = HTTP::Request->new($p{method} => $p{url});
   $request->content($p{content}) if (exists $p{content});
-  Net::Pachube::Response->new(http_response => $ua->request($request));
+  my $resp = $self->{http_response} = $ua->request($request);
+  $resp->is_success && $resp;
 }
 
 1;
