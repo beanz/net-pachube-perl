@@ -44,7 +44,7 @@ our $VERSION = '0.01';
 
 __PACKAGE__->mk_accessors(qw/id pachube eeml/);
 
-=head2 C<new(%params)>
+=head2 C<new( %parameters )>
 
 The constructor creates a new L<Net:Pachube::Feed> object.  This
 method is generally only called by the L<Net::Pachube> request

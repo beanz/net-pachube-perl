@@ -47,7 +47,7 @@ our $VERSION = '0.01';
 __PACKAGE__->mk_accessors(qw/key url user_agent/);
 __PACKAGE__->mk_ro_accessors(qw/http_response/);
 
-=head2 C<new({ ... })>
+=head2 C<new( %parameters )>
 
 The constructor creates a new L<Net:Pachube> object.  The constructor
 takes a parameter hash as arguments.  Valid parameters in the hash
@@ -111,7 +111,7 @@ sub feed {
   Net::Pachube::Feed->new(id => $feed_id, pachube => $self, fetch => $fetch);
 }
 
-=head2 C<create( %param )>
+=head2 C<create( %parameters )>
 
 This method makes a C<POST> request to create a new feed.  If
 successful, it returns a L<Net::Pachube::Feed> object for the new feed
