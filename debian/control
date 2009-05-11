@@ -9,7 +9,7 @@ Homepage: http://wiki.github.com/beanz/net-pachube-perl/
 
 Package: libnet-pachube-perl
 Architecture: all
-Depends: ${perl:Depends}, ${misc:Depends}
+Depends: ${perl:Depends}, ${misc:Depends}, libclass-accessor-perl, libwww-perl, libxml-simple-perl
 Description:  Perl extension for manipulating pachube.com feeds
  This module provides a simple API to fetch and/or update pachube.com
  feeds.
