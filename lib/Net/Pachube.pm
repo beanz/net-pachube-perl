@@ -239,7 +239,7 @@ Pachube web site: http://www.pachube.com/
 
 Mark Hindess, E<lt>soft-pachube@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2009 by Mark Hindess
 
