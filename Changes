@@ -1,6 +1,8 @@
 Revision history for Perl extension Net::Pachube.
 
 {{$NEXT}}
+        - Fix POD bug.  https://rt.cpan.org/Ticket/Display.html?id=51747.
+          Thanks to FWIE.
 	- Add debian package files.
 	- Begin using Dist::Zilla to make releases easier.
 
