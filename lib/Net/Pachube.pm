@@ -1,8 +1,6 @@
 package Net::Pachube;
 
-=head1 NAME
-
-Net::Pachube - Perl extension for accessing pachube.com
+# ABSTRACT: Perl extension for accessing pachube.com
 
 =head1 SYNOPSIS
 
@@ -28,8 +26,6 @@ Net::Pachube - Perl extension for accessing pachube.com
 This module provides a simple API to fetch and/or update pachube.com
 feeds.
 
-=head1 METHODS
-
 =cut
 
 use 5.006;
@@ -42,12 +38,10 @@ use HTTP::Request;
 use XML::Simple;
 use Net::Pachube::Feed;
 
-our $VERSION = '0.01';
-
 __PACKAGE__->mk_accessors(qw/key url user_agent/);
 __PACKAGE__->mk_ro_accessors(qw/http_response/);
 
-=head2 C<new( %parameters )>
+=method C<new( %parameters )>
 
 The constructor creates a new L<Net:Pachube> object.  The constructor
 takes a parameter hash as arguments.  Valid parameters in the hash
@@ -83,22 +77,22 @@ sub new {
                    @_ });
 }
 
-=head2 C<key( [$new_key] )>
+=attr C<key( [$new_key] )>
 
 This method is an accessor/setter for the C<key> attribute which is
 the Pachube API key to use.
 
-=head2 C<url( [$new_url] )>
+=attr C<url( [$new_url] )>
 
 This method is an accessor/setter for the C<url> attribute
 which is the base URL to to use for all HTTP requests.
 
-=head2 C<user_agent( [$new_user_agent] )>
+=attr C<user_agent( [$new_user_agent] )>
 
 This method is an accessor/setter for the C<user_agent> attribute
 which is the L<LWP> user agent object to use for all HTTP requests.
 
-=head2 C<feed( $feed_id )>
+=method C<feed( $feed_id )>
 
 This method constructs a new L<Net::Pachube::Feed> object and retrieves
 the feed data from the server.
@@ -111,7 +105,7 @@ sub feed {
   Net::Pachube::Feed->new(id => $feed_id, pachube => $self, fetch => $fetch);
 }
 
-=head2 C<create( %parameters )>
+=method C<create( %parameters )>
 
 This method makes a C<POST> request to create a new feed.  If
 successful, it returns a L<Net::Pachube::Feed> object for the new feed
@@ -227,24 +221,6 @@ constructor.
 1;
 __END__
 
-=head2 EXPORT
-
-None by default.
-
 =head1 SEE ALSO
 
 Pachube web site: http://www.pachube.com/
-
-=head1 AUTHOR
-
-Mark Hindess, E<lt>soft-pachube@temporalanomaly.comE<gt>
-
-=head1 COPYRIGHT
-
-Copyright (C) 2009 by Mark Hindess
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
-at your option, any later version of Perl 5 you may have available.
-
-=cut

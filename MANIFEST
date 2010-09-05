@@ -1,8 +1,0 @@
-Changes
-Makefile.PL
-MANIFEST
-README
-t/01-use.t
-t/02-get.t
-lib/Net/Pachube.pm
-lib/Net/Pachube/Feed.pm

@@ -1,8 +1,6 @@
 package Net::Pachube::Feed;
 
-=head1 NAME
-
-Net::Pachube::Feed - Perl extension for manipulating pachube.com feeds
+# ABSTRACT: Perl extension for manipulating pachube.com feeds
 
 =head1 SYNOPSIS
 
@@ -29,8 +27,6 @@ Net::Pachube::Feed - Perl extension for manipulating pachube.com feeds
 
 This module encapsulates a www.pachube.com feed.
 
-=head1 METHODS
-
 =cut
 
 use 5.006;
@@ -40,11 +36,9 @@ use base qw/Class::Accessor::Fast/;
 use Carp;
 use XML::Simple;
 
-our $VERSION = '0.01';
-
 __PACKAGE__->mk_accessors(qw/id pachube eeml/);
 
-=head2 C<new( %parameters )>
+=method C<new( %parameters )>
 
 The constructor creates a new L<Net:Pachube::Feed> object.  This
 method is generally only called by the L<Net::Pachube> request
@@ -72,7 +66,7 @@ sub new {
   $p{fetch} ? $self->get() : $self;
 }
 
-=head2 C<get( )>
+=method C<get( )>
 
 This method refreshes the contents of the feed by sending a C<GET>
 request to the server.  It is automatically called when the feed
@@ -92,11 +86,11 @@ sub get {
   return $self;
 }
 
-=head2 C<eeml( )>
+=method C<eeml( )>
 
 This method returns the L<EEML> of the feed.
 
-=head2 C<title( )>
+=method C<title( )>
 
 This method returns the title of the feed from the L<EEML> if the
 request was successful.
@@ -107,7 +101,7 @@ sub title {
   $_[0]->{_hash}->{environment}->{title};
 }
 
-=head2 C<description( )>
+=method C<description( )>
 
 This method returns the description of the feed from the L<EEML> if the
 request was successful.
@@ -118,7 +112,7 @@ sub description {
   $_[0]->{_hash}->{environment}->{description};
 }
 
-=head2 C<feed_id( )>
+=method C<feed_id( )>
 
 This method returns the id of the feed from the L<EEML> if the request
 was successful.  It should always be equal to C<$self->id> which is
@@ -130,7 +124,7 @@ sub feed_id {
   $_[0]->{_hash}->{environment}->{id};
 }
 
-=head2 C<status( )>
+=method C<status( )>
 
 This method returns the status of the feed from the L<EEML> if the request
 was successful.
@@ -141,7 +135,7 @@ sub status {
   $_[0]->{_hash}->{environment}->{status};
 }
 
-=head2 C<feed_url( )>
+=method C<feed_url( )>
 
 This method returns the URL for the feed from the L<EEML> if the
 request was successful.
@@ -152,7 +146,7 @@ sub feed_url {
   $_[0]->{_hash}->{environment}->{feed};
 }
 
-=head2 C<creator( )>
+=method C<creator( )>
 
 This method returns the creator value from the L<EEML> if the request
 was successful.
@@ -163,7 +157,7 @@ sub creator {
   $_[0]->{_hash}->{environment}->{creator};
 }
 
-=head2 C<location( [ $key ] )>
+=method C<location( [ $key ] )>
 
 This method returns the location information from the L<EEML> if the
 request was successful.  If the optional C<key> parameter is not
@@ -178,7 +172,7 @@ sub location {
     $_[0]->{_hash}->{environment}->{location};
 }
 
-=head2 C<number_of_streams( )>
+=method C<number_of_streams( )>
 
 This method returns the number of data streams present in the feed.
 
@@ -188,7 +182,7 @@ sub number_of_streams {
   scalar keys %{$_[0]->{_hash}->{environment}->{data}}
 }
 
-=head2 C<data_value( [ $index ] )>
+=method C<data_value( [ $index ] )>
 
 This method returns the value from the data stream from the L<EEML>
 if the request was successful.  If the optional zero-based C<index>
@@ -200,7 +194,7 @@ sub data_value {
   $_[0]->{_hash}->{environment}->{data}->{$_[1]||0}->{value}->{content};
 }
 
-=head2 C<data_min( [ $index ] )>
+=method C<data_min( [ $index ] )>
 
 This method returns the minimum value for the data stream from the
 L<EEML> if the request was successful.  It may be undefined.  If the
@@ -213,7 +207,7 @@ sub data_min {
   $_[0]->{_hash}->{environment}->{data}->{$_[1]||0}->{value}->{minValue};
 }
 
-=head2 C<data_max( [ $index ] )>
+=method C<data_max( [ $index ] )>
 
 This method returns the maximum value for the data stream from the
 L<EEML> if the request was successful.  It may be undefined.  If the
@@ -226,7 +220,7 @@ sub data_max {
   $_[0]->{_hash}->{environment}->{data}->{$_[1]||0}->{value}->{maxValue};
 }
 
-=head2 C<data_tags( [ $index ] )>
+=method C<data_tags( [ $index ] )>
 
 This method returns the tag value for the data stream from the L<EEML>
 if the request was successful.  It may be undefined or a list of tags.
@@ -240,10 +234,11 @@ sub data_tags {
   ref $tags ? @$tags : $tags
 }
 
-=head2 C<update( data => \@data_values )>
+=method C<update( data => \@data_values )>
 
 This method performs a C<PUT> request in order to update a feed.
 It returns true on success or undef otherwise.
+
 =cut
 
 sub update {
@@ -256,7 +251,7 @@ sub update {
                      content => (join ',', @$data));
 }
 
-=head2 C<delete( )>
+=method C<delete( )>
 
 This method sends a C<DELETE> request to the server to remove
 it from the server.  It returns true if successful or undef
@@ -275,24 +270,6 @@ sub delete {
 1;
 __END__
 
-=head2 EXPORT
-
-None by default.
-
 =head1 SEE ALSO
 
 Pachube web site: http://www.pachube.com/
-
-=head1 AUTHOR
-
-Mark Hindess, E<lt>soft-pachube@temporalanomaly.comE<gt>
-
-=head1 COPYRIGHT
-
-Copyright (C) 2009 by Mark Hindess
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
-at your option, any later version of Perl 5 you may have available.
-
-=cut
