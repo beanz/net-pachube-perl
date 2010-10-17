@@ -234,7 +234,7 @@ sub data_tags {
   ref $tags ? @$tags : $tags
 }
 
-=method C<<update( data => \@data_values )>>
+=method C<< update( data => \@data_values ) >>
 
 This method performs a C<PUT> request in order to update a feed.
 It returns true on success or undef otherwise.
