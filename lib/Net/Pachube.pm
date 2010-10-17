@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 package Net::Pachube;
 
 # ABSTRACT: Perl extension for accessing pachube.com
@@ -29,8 +31,6 @@ feeds.
 =cut
 
 use 5.006;
-use strict;
-use warnings;
 use base qw/Class::Accessor::Fast/;
 use Carp;
 use LWP::UserAgent;
@@ -85,7 +85,7 @@ the Pachube API key to use.
 =attr C<url( [$new_url] )>
 
 This method is an accessor/setter for the C<url> attribute
-which is the base URL to to use for all HTTP requests.
+which is the base URL to use for all HTTP requests.
 
 =attr C<user_agent( [$new_user_agent] )>
 

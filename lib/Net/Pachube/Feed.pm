@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 package Net::Pachube::Feed;
 
 # ABSTRACT: Perl extension for manipulating pachube.com feeds
@@ -30,8 +32,6 @@ This module encapsulates a www.pachube.com feed.
 =cut
 
 use 5.006;
-use strict;
-use warnings;
 use base qw/Class::Accessor::Fast/;
 use Carp;
 use XML::Simple;
